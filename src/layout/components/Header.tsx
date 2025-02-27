@@ -90,9 +90,7 @@ const Header = () => {
         </NavLink>
       </div>
       <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
-        <SheetTrigger asChild>
-          <></>
-        </SheetTrigger>
+        
         <SheetContent side={"left"}>
           <SheetHeader>
             <SheetTitle>
