@@ -12,8 +12,8 @@ const axiosBase = axios.create({
 });
 
 
-export const startScrappingPublications = async () => {
-    const {data} = await axiosBase.post('/scrapper/scrape-all');
+export const startScrappingPublications = async (sessionId:string) => {
+    const {data} = await axiosBase.post('/scrapper/scrape-all',{session_id:sessionId});
     console.log("startscrape res", data)
     return data.data;
 };
