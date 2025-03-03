@@ -10,91 +10,108 @@ interface WebSocketMessage {
   [key: string]: any; // Allow other properties
 }
 
-const Admin = () => {
-  const [progress, setProgress] = useState<string>(""); // To track progress updates
-  const [sessionId, setSessionId] = useState<string | null>(null); // To store the session ID for the WebSocket connection
-  const websocketRef = useRef<WebSocket | null>(null); // WebSocket reference
-  const scrollRef = useRef<HTMLPreElement | null>(null); // Ref for the scrollable container
-  const [isConnected, setIsConnected] = useState<boolean>(false); // Track WebSocket connection status
-  const reconnectDelay = 5000; // Delay before reconnecting (5 seconds)
+const WS_URL = `ws://127.0.0.1:8000/api/scrapper/ws`;
 
+const Admin = () => {
+  const [scrapeProgress, setScrapeProgress] = useState<string>("");
+  const [sessionId, setSessionId] = useState<string | null>(null);
+  const websocketRef = useRef<WebSocket | null>(null);
+  const scrollRef = useRef<HTMLPreElement | null>(null);
+  const [isConnected, setIsConnected] = useState<boolean>(false);
+  const [isRunning, setIsRunning] = useState<boolean>(false);
+  const reconnectDelay = 5000;
 
   const startWebSocket = () => {
-    let wsUrl = `ws://127.0.0.1:8000/api/scrapper/ws`;
-    const ws = new WebSocket(wsUrl);
+    const ws = new WebSocket(WS_URL);
 
     ws.onopen = () => {
       console.log("WebSocket connected");
       let savedSessionId = localStorage.getItem("sessionId");
-      if(savedSessionId) {
-        sendMessageToServer(JSON.stringify({ type: "session_id", session_id: savedSessionId }))
+      if (savedSessionId) {
+        console.log("Sending old sesionId to server");
+        sendMessageToServer(
+          JSON.stringify({ type: "session_id", session_id: savedSessionId })
+        );
+        setSessionId(savedSessionId);
+      } else {
+        sendMessageToServer(JSON.stringify({ type: "ping" }));
       }
-      setIsConnected(true)
+      setIsConnected(true);
     };
 
     ws.onmessage = (event: MessageEvent) => {
       try {
-        const message: WebSocketMessage = JSON.parse(event.data);
-        console.log("WS MESSAGE: ", message);
+        let message: WebSocketMessage;
+        try {
+          message = JSON.parse(event.data);
 
-        if (message.type === "session_id" && message.session_id) {
-          localStorage.setItem("sessionId", message.session_id);
-          setSessionId( message.session_id)
-        } 
-        
-        if (message.type === "old_data" && message.old_data) {
-            const oldData = JSON.parse(message.old_data)
-            let msg = ""
-            oldData.forEach((txt:any) => {
-              msg = msg + "\n" + txt
+          if (message.type === "session_id" && message.session_id) {
+            localStorage.setItem("sessionId", message.session_id);
+            setSessionId(message.session_id);
+          }
+
+          if (message.type === "old_data" && message.old_data) {
+            const oldData = message.old_data;
+            let msg = "";
+            console.log("OLD DATA", oldData);
+            oldData.forEach((txt: any) => {
+              msg = msg + "\n" + txt;
             });
-            setProgress(msg)
-        }
-         else {
-          setProgress(
-            (prevProgress) => prevProgress + "\n" + JSON.stringify(message)
-          );
+            setScrapeProgress(msg);
+          } else {
+            console.log("message", message);
+          }
+        } catch (jsonError) {
+          // console.log("JSON ERROR: ", event.data, jsonError)
+          setScrapeProgress((prevProgress) => prevProgress + "\n" + event.data);
+          if(event.data.includes("Completed scrapping")) {
+             setIsRunning(false)
+          }
         }
       } catch (error) {
-        setProgress((prevProgress) => prevProgress + "\n" + event.data);
+        console.log("ERROR:", error);
       }
     };
 
-    ws.onerror = (error: Event) => {
+    ws.onerror = (error) => {
       console.error("WebSocket Error: ", error);
     };
 
     ws.onclose = (event: CloseEvent) => {
       console.log("WebSocket disconnected", event);
       setIsConnected(false);
-      // Attempt to reconnect after the delay
       setTimeout(startWebSocket, reconnectDelay);
     };
-
     websocketRef.current = ws;
   };
-
-  // Function to send a message to the server
   const sendMessageToServer = (message: any) => {
     if (
       websocketRef.current &&
       websocketRef.current.readyState === WebSocket.OPEN
     ) {
+      console.log("Sending message to server")
+      if(message=="start_scrapping") setIsRunning(true)
       websocketRef.current.send(message);
     } else {
       console.error("WebSocket is not open.");
       toast.error("WebSocket is not connected.");
     }
   };
+  const handleStartScraping = () => {
+    if (!sessionId) {
+      console.log("STARTING SCRAPE1");
+      toast.error("WebSocket not connected yet.");
+      return;
+    }
+    toast.success("Scrapping Started");
+    sendMessageToServer("start_scrapping");
+  };
 
-
-
-  // Automatically scroll to the bottom when progress updates
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollIntoView({ behavior: "smooth", block: "end" });
     }
-  }, [progress]);
+  }, [scrapeProgress]);
 
   // Start WebSocket connection when the component mounts
   useEffect(() => {
@@ -108,14 +125,6 @@ const Admin = () => {
     };
   }, []);
 
-  const handleStartScraping = () => {
-    if (!sessionId) {
-      toast.error("WebSocket not connected yet.");
-      return;
-    }
-    sendMessageToServer("start_scrapping");
-  };
-
   return (
     <div className="w-full min-h-[80vh] flex flex-col justify-center items-center">
       <div className="flex gap-1 justify-center items-center">
@@ -123,6 +132,7 @@ const Admin = () => {
         <Button
           variant="link"
           onClick={handleStartScraping}
+          disabled={isRunning}
           className="cursor-pointer font-semibold"
         >
           START
@@ -131,11 +141,11 @@ const Admin = () => {
         database now.
       </div>
 
-      {progress && (
+      {scrapeProgress && (
         <div className="m-2">
           <div className="font-semibold text-gray-500 text-sm">LOGS</div>
           <ScrollArea className="bg-black text-white h-[400px] md:h-[600px] max-w-[350px] sm:max-w-[500px] lg:max-w-[800px] xl:max-w-[1000px] 2xl:max-w-[1400px] border rounded-md p-4">
-            <pre ref={scrollRef}>{progress}</pre>
+            <pre ref={scrollRef}>{scrapeProgress}</pre>
           </ScrollArea>
         </div>
       )}
@@ -151,5 +161,7 @@ const Admin = () => {
     </div>
   );
 };
+
+
 
 export default Admin;
