@@ -19,4 +19,10 @@ export const startScrappingPublications = async (sessionId:string) => {
 };
 
 
+export const getScrappingLogs = async () => {
+    const {data} = await axiosBase.get('/scrapper/logs');
+    console.log("startscrape res", data)
+    return data.data;
+}
+
 
