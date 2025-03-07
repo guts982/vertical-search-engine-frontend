@@ -35,6 +35,36 @@ export function getFutureDateTime(startAt:string) {
     hoursAfter24, weekAfter, monthAfter
   }
 }
+export function getTimeDifferenceInSeconds(start: string, end: string): number {
+  // Convert timestamp strings into Date objects
+  const startDate = new Date(start.replace(" ", "T"));
+  const endDate = new Date(end.replace(" ", "T"));
+
+  // Calculate difference in seconds
+  return Math.floor((endDate.getTime() - startDate.getTime()) / 1000);
+}
+
+
+
+export function secondsToHms(seconds: number): string {
+  // Calculate hours, minutes, and seconds
+  const hours = Math.floor(seconds / 3600);
+  const minutes = Math.floor((seconds % 3600) / 60);
+  const remainingSeconds = seconds % 60;
+
+  // Format the result
+  const parts = [];
+  if (hours > 0) parts.push(`${hours} hour${hours > 1 ? 's' : ''}`);
+  if (minutes > 0) parts.push(`${minutes} minute${minutes > 1 ? 's' : ''}`);
+  if (remainingSeconds > 0) parts.push(`${remainingSeconds} second${remainingSeconds > 1 ? 's' : ''}`);
+
+  // Join the parts into a single string
+  return parts.join(' ') || '0 seconds';
+}
+
+
+
+
 
 function calculateCountdown(started_at: string) {
   // Step 1: Parse the started_at date
@@ -78,14 +108,3 @@ function calculateCountdown(started_at: string) {
     },
   };
 }
-
-// Example usage
-const logs = [
-  { type: 'scrape-data', entries: [1], started_at: '2025-03-04 23:42:01 +0545' },
-  { type: 'scrape-data', entries: [2], started_at: '2025-03-05 12:00:00 +0545' },
-];
-
-const latestLog = logs[logs.length - 1]; // Assuming logs are sorted by timestamp or you're getting the latest log.
-
-const result = calculateCountdown(latestLog.started_at);
-console.log(result);
