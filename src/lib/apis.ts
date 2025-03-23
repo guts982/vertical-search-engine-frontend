@@ -12,17 +12,23 @@ const axiosBase = axios.create({
 });
 
 
-export const startScrappingPublications = async (sessionId:string) => {
-    const {data} = await axiosBase.post('/scrapper/scrape-all',{session_id:sessionId});
-    console.log("startscrape res", data)
-    return data.data;
+export const search = async (queryParameters: any) => {
+    const start = performance.now(); 
+    const {data} = await axiosBase.get('/search', {
+        params: queryParameters
+    });
+    const end = performance.now(); 
+    return {...data.data, responseTime: formatResponseTime(end - start)};
 };
 
 
 export const getScrappingLogs = async () => {
     const {data} = await axiosBase.get('/scrapper/logs');
-    console.log("startscrape res", data)
     return data.data;
 }
 
-
+const formatResponseTime = (time:any) => {
+    // if (time < 1000) return `${Math.round(time)} ms`;
+    return `${(time / 1000).toFixed(2)} s`;
+  };
+  

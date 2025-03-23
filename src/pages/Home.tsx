@@ -1,26 +1,32 @@
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Search } from "lucide-react";
+import SearchInput from "@/components/app/SearchInput";
+import SearchResults from "@/components/app/SearchResults";
+import { useSearchContext } from "@/contexts/SearchContext";
+import { useEffect } from "react";
+import { useNavigate } from "react-router";
+
 
 function Home() {
-  return (
-    <div className="w-full   min-h-[80vh] flex flex-col justify-center items-center">
-      <div className="text-[2em] mb-4 xl:mb-5">Coventry Scholar</div>
-      <div className="p-4  flex flex-col sm:flex-row gap-3 sm:gap-0  w-full justify-center  items-center space-x-0">
-        <Input
-          type="text"
-          placeholder="Search Document Title..." 
-          className="sm:rounded-r-none round w-[80vw] sm:w-[70vw] "
-        />
-        <Button
-          type="submit"
-          className="sm:rounded-l-none flex justify-center items-center gap-2"
-        >
-          <Search /> Search
-        </Button>
+
+  const {searchOpen, clearSearch} = useSearchContext()
+  const navigate = useNavigate();
+  
+  useEffect(()=>{
+
+  },[searchOpen])
+
+  return !searchOpen ? (
+    <div className="w-full   min-h-[40vh] flex flex-col justify-center items-center p-2 lg:p-4 ">
+      <div onClick={()=>{clearSearch();  navigate("/");}}  className="cursor-pointer  text-3xl sm:text-5xl lg:text-6xl  mb-2 sm:mb-5 lg:mb-8   xl:mb-10 font-semibold text-stone-500  text-nowrap">
+        <span className=" text-[#1476c6] font-fira">Coventry</span> Scholar
       </div>
+      <SearchInput /> 
     </div>
-  );
+  )
+  : 
+  (
+    <SearchResults />
+  )
+
 }
 
 export default Home;

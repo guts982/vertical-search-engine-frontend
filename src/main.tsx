@@ -4,8 +4,9 @@ import { BrowserRouter, Routes, Route } from "react-router";
 import "./index.css";
 import App from "@/pages/Home.tsx";
 import AppLayout from "@/layout/AppLayout.tsx";
-import Admin from "@/pages/Admin.tsx";
+import Logs from "@/pages/Logs";
 import Profile from "@/pages/Profile";
+import PageNotFound from "./pages/PageNotFound";
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
@@ -13,8 +14,9 @@ createRoot(document.getElementById("root")!).render(
       <Routes>
         <Route element={<AppLayout />}>
           <Route path="/" index element={<App />} />
-          <Route path="/admin" element={<Admin />} />
+          <Route path="/Logs" element={<Logs />} />
           <Route path="/profile" element={<Profile />} />
+          <Route path="*" element={<PageNotFound />} />
         </Route>
       </Routes>
     </BrowserRouter>
