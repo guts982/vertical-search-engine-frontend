@@ -294,7 +294,7 @@ const DocList = ({ data }: { data: any }) => {
               </Collapsible>
             )}
             <div className="text-sm italic text-gray-500">{doc.type}</div>
-            <div className="max-w-[150px] text-xs text-gray-500 flex flex-col gap-0 justify-center items-start">
+            {/* <div className="max-w-[150px] text-xs text-gray-500 flex flex-col gap-0 justify-center items-start">
               <div className="w-full flex justify-between items-center ">
                 <div>SIMILARITY</div>
                 <div
@@ -308,7 +308,7 @@ const DocList = ({ data }: { data: any }) => {
                 className=" bg-gray-300"
                 getValueLabel={(val, max) => `SIMILARITY:${val}/${max}`}
               />
-            </div>
+            </div> */}
           </div>
         ))}
       </div>
