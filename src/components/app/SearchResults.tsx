@@ -19,7 +19,8 @@ import {
   CollapsibleTrigger,
 } from "../ui/collapsible";
 import { Button } from "../ui/button";
-import { Progress } from "../ui/progress";
+import { useManageCoventryAuthors } from "@/lib/mutations";
+import { toast } from "sonner";
 
 const SearchResults = () => {
   const { queryState, filters, setFilters, searchParams, setSearchParams } =
@@ -92,8 +93,11 @@ const SearchResults = () => {
 export default SearchResults;
 
 const DocList = ({ data }: { data: any }) => {
-  const { queryState, setSearchParams, setFilters } = useSearchContext();
+  const { setSearchParams, setFilters } = useSearchContext();
+  const { authorPublications } = useManageCoventryAuthors();
   const [abstractExpanded, setAbstractExpanded] = useState<any>({});
+  const [authorsPublications, setAuthorsPublications] = useState<any>([]);
+  const [loadingAP, setLoadingAP] = useState(false);
 
   const toggleAbstract = (id: any) => {
     setAbstractExpanded((old: any) => ({
@@ -242,59 +246,87 @@ const DocList = ({ data }: { data: any }) => {
       return newParams;
     });
   };
+  const extractCoverntryAuthorIds = (data: any) => {
+    const authorIds = new Set();
+
+    data.forEach((publication: any) => {
+      publication.coventry_authors.forEach((author: any) => {
+        if (author._id) {
+          authorIds.add(author._id);
+        }
+      });
+    });
+    console.log("CASS:",Array.from(authorIds) )
+    return Array.from(authorIds);
+  };
 
   useEffect(() => {
     setAbstractExpanded({});
-  }, [queryState.data]);
+    setAuthorsPublications([]);
+    const authorIdsList = extractCoverntryAuthorIds(data.data);
+    setLoadingAP(true);
+    authorPublications.mutate(authorIdsList, {
+      onSuccess: (data: any) => {
+        console.log("Successfully fetched author publications", data.data);
+        setAuthorsPublications(data.data);
+        setLoadingAP(false);
+      },
+      onError: (error: any) => {
+        console.log("ERROR fetching author publications:", error);
+        setLoadingAP(false);
+      },
+    });
+  }, [data.data]);
 
   return (
-    <div className="max-w-[780px]">
-      <div className="font-nunito flex flex-col gap-5 items-start justify-center">
-        {data.data.map((doc: any) => (
-          <div key={doc._id}>
-            <a
-              target="blank"
-              href={doc.link}
-              className="text-lg font-semibold text-blue-400 hover:underline"
-            >
-              {doc.title}
-            </a>
-            <div className="text-md text-gray-500">
-              {" "}
-              {authorsHtml(doc)} {doc.date}, {doc.resource}
-            </div>
-            {doc.abstract && doc.abstract != "N/A" && (
-              <Collapsible
-                open={abstractExpanded[doc._id]}
-                onOpenChange={() => toggleAbstract(doc._id)}
-                className="mt-2"
+    <div className="w-full flex flex-col  md:flex-row  justify-start items-start gap-5">
+      <div className="max-w-[780px]">
+        <div className="font-nunito flex flex-col gap-5 items-start justify-center">
+          {data.data.map((doc: any) => (
+            <div key={doc._id}>
+              <a
+                target="blank"
+                href={doc.link}
+                className="text-lg font-semibold text-blue-400 hover:underline"
               >
-                <div className="text-sm text-gray-700">
-                  <CollapsibleContent className="mt-1">
-                    {doc.abstract}
-                  </CollapsibleContent>
+                {doc.title}
+              </a>
+              <div className="text-md text-gray-500">
+                {" "}
+                {authorsHtml(doc)} {doc.date}, {doc.resource}
+              </div>
+              {doc.abstract && doc.abstract != "N/A" && (
+                <Collapsible
+                  open={abstractExpanded[doc._id]}
+                  onOpenChange={() => toggleAbstract(doc._id)}
+                  className="mt-2"
+                >
+                  <div className="text-sm text-gray-700">
+                    <CollapsibleContent className="mt-1">
+                      {doc.abstract}
+                    </CollapsibleContent>
 
-                  <div
-                    className={
-                      abstractExpanded[doc._id] ? "hidden" : "line-clamp-2"
-                    }
-                  >
-                    {doc.abstract}
-                  </div>
-                  <CollapsibleTrigger asChild>
-                    <Button
-                      variant="link"
-                      size="sm"
-                      className="p-0  h-auto font-semibold cursor-pointer"
+                    <div
+                      className={
+                        abstractExpanded[doc._id] ? "hidden" : "line-clamp-2"
+                      }
                     >
-                      {abstractExpanded[doc._id] ? "Show less" : "Read more"}
-                    </Button>
-                  </CollapsibleTrigger>
-                </div>
-              </Collapsible>
-            )}
-            <div className="text-sm italic text-gray-500">{doc.type}</div>
-            {/* <div className="max-w-[150px] text-xs text-gray-500 flex flex-col gap-0 justify-center items-start">
+                      {doc.abstract}
+                    </div>
+                    <CollapsibleTrigger asChild>
+                      <Button
+                        variant="link"
+                        size="sm"
+                        className="p-0  h-auto font-semibold cursor-pointer"
+                      >
+                        {abstractExpanded[doc._id] ? "Show less" : "Read more"}
+                      </Button>
+                    </CollapsibleTrigger>
+                  </div>
+                </Collapsible>
+              )}
+              <div className="text-sm italic text-gray-500">{doc.type}</div>
+              {/* <div className="max-w-[150px] text-xs text-gray-500 flex flex-col gap-0 justify-center items-start">
               <div className="w-full flex justify-between items-center ">
                 <div>SIMILARITY</div>
                 <div
@@ -309,24 +341,73 @@ const DocList = ({ data }: { data: any }) => {
                 getValueLabel={(val, max) => `SIMILARITY:${val}/${max}`}
               />
             </div> */}
-          </div>
-        ))}
+            </div>
+          ))}
+        </div>
+
+        <div>
+          {data.pagination.total_pages > 0 && (
+            <div className="mt-6">
+              <Pagination>
+                <PaginationContent>
+                  {generatePaginationItems()}
+                </PaginationContent>
+              </Pagination>
+
+              <div className="mt-2 text-xs text-gray-400 text-right">
+                {data.pagination.total_results} results | Page{" "}
+                {data.pagination.page} of {data.pagination.total_pages} |
+                Response time: {data.responseTime}
+              </div>
+            </div>
+          )}
+        </div>
       </div>
 
-      <div>
-        {data.pagination.total_pages > 0 && (
-          <div className="mt-6">
-            <Pagination>
-              <PaginationContent>{generatePaginationItems()}</PaginationContent>
-            </Pagination>
-
-            <div className="mt-2 text-xs text-gray-400 text-right">
-              {data.pagination.total_results} results | Page{" "}
-              {data.pagination.page} of {data.pagination.total_pages} | Response
-              time: {data.responseTime}
-            </div>
-          </div>
-        )}
+      <div className="">
+        <h3 className="font-semibold text-gray-500 text-md md:text-xs text-center md:text-start ">
+          Other publications by authors
+        </h3>
+        <div className="text-xs">
+          {loadingAP ? (
+            "Loading..."
+          ) : authorsPublications?.length ? (
+            authorsPublications.map((author: any) => (
+              <div key={author.profile_link} className="py-4">
+                
+                <a
+                  href={author.profile_link}
+                  className="font-semibold decoration-none  text-red-500 text-md hover:underline"
+                  target="blank"
+                >
+                  {author.name}
+                </a>
+                <div className="flex flex-col gap-2">
+                  {author.publications.map((doc: any) => (
+                    <div key={doc._id}>
+                      <a
+                        target="blank"
+                        href={doc.link}
+                        className="text-xs  text-blue-400 hover:underline"
+                      >
+                        {doc.title}
+                      </a>
+                      {/* <div className="text-xs text-gray-500">
+                        {" "}
+                        {authorsHtml(doc)} {doc.date}, {doc.resource}
+                      </div>
+                      <div className="text-xs italic text-gray-500">
+                        {doc.type}
+                      </div> */}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))
+          ) : (
+            <></>
+          )}
+        </div>
       </div>
     </div>
   );

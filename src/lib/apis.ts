@@ -22,6 +22,15 @@ export const search = async (queryParameters: any) => {
 };
 
 
+export const getAuthorPublications = async (authorIds: string[]) => {
+    const start = performance.now(); 
+    const {data} = await axiosBase.post('/author-publications', authorIds);
+    const end = performance.now(); 
+    return { data: data.data, responseTime: formatResponseTime(end - start)};
+};
+
+
+
 export const getScrappingLogs = async () => {
     const {data} = await axiosBase.get('/scrapper/logs');
     return data.data;

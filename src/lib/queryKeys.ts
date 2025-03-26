@@ -8,6 +8,7 @@
     
     logs: "logs",
 
+
 }
 
 export default QUERY_KEYS
