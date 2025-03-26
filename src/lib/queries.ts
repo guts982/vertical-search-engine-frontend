@@ -1,6 +1,6 @@
 import {useQuery} from "@tanstack/react-query";
 import QUERY_KEYS from "./queryKeys";
-import { search, getScrappingLogs } from "./apis";
+import { search, getScrappingLogs, modelResults } from "./apis";
 
 export function useGetSearchResults(queryParameters: any) {
 
@@ -17,6 +17,17 @@ export function useGetSearchResults(queryParameters: any) {
         enabled: false,
     });
 }
+
+
+export function useGetModelResults() {
+    return useQuery({
+        queryKey: [QUERY_KEYS.logs],
+        queryFn: () => modelResults(),
+        retry: false,
+    });
+}
+
+
 
 export function useGetScrappingLogs() {
     return useQuery({

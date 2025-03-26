@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { useNavigate, NavLink } from "react-router";
+import { useNavigate, NavLink, useLocation } from "react-router";
 import {
   Sheet,
   SheetClose,
@@ -16,6 +16,7 @@ import {
   ChevronDown,
   Dot,
   GraduationCap,
+  Layers,
   ListFilter,
   Scroll,
 } from "lucide-react";
@@ -32,14 +33,19 @@ import { Separator } from "@/components/ui/separator";
 import SortFilter from "@/components/app/SortFilter";
 import TypeFilter from "@/components/app/TypeFilter";
 
-const UserAvatar = ({ classes }: { classes: string }) => (
+const UserAvatar = ({ classes, link=false }: { classes: string, link?:boolean }) => {
+  return link ? 
+  (
   <NavLink to="/profile">
     <Avatar className={classes}>
       <AvatarImage src="/amit.jpg" />
       <AvatarFallback>CN</AvatarFallback>
     </Avatar>
   </NavLink>
-);
+) :  <Avatar className={classes}>
+<AvatarImage src="/amit.jpg" />
+<AvatarFallback>CN</AvatarFallback>
+</Avatar> };
 
 const menuItems = [
   {
@@ -60,13 +66,24 @@ const menuItems = [
     path: "/profile",
     icon: (classes?: string) => <UserAvatar classes={classes ?? "w-6 h-6"} />,
   },
+  {
+    id: 2,
+    label: "Classification",
+    path: "/classification",
+    icon: (classes?: string) =>   <Layers
+    fill="#222"
+    stroke="#222"
+    className={classes ?? "h-6 w-6 text-zinc-600"}
+  />,
+  },
 ];
 
 const navLinkClasses =
   "flex gap-4  justify-start items-center hover:bg-zinc-100 w-full px-2 lg:px-4 py-2 text-lg";
 
-const NAV_LINKS = (
+const NAV_LINKS =  (
   <div className="hidden sm:flex justify-start items-center w-full gap-4 text-sm">
+    
     <NavLink
       to="/profile"
       className={({ isActive }) =>
@@ -87,6 +104,16 @@ const NAV_LINKS = (
     >
       <Scroll fill="#222" className="h-5 w-5" /> My Logs
     </NavLink>
+    <NavLink
+      to="/classification"
+      className={({ isActive }) =>
+        isActive
+          ? "flex justify-center items-center gap-4 hover:underline"
+          : "flex justify-center items-center gap-4 hover:underline"
+      }
+    >
+      <Layers fill="#222" className="h-5 w-5" /> Classification
+    </NavLink>
   </div>
 );
 
@@ -94,6 +121,7 @@ const Header = () => {
   const { searchOpen, clearSearch, queryState , searchParams} = useSearchContext();
   const { data, error, isLoading } = queryState;
   const navigate = useNavigate();
+  const location = useLocation();
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const toggleSheet = () => {
     setIsSheetOpen(!isSheetOpen);
@@ -115,7 +143,21 @@ const Header = () => {
           </button>
 
           {!searchOpen ? (
-            NAV_LINKS
+            <>
+            {
+      location.pathname != "/" &&  <div
+                onClick={() => {
+                  clearSearch();
+                  navigate("/");
+                }}
+                className="cursor-pointer hidden lg:flex w-[200px] text-2xl   font-semibold text-stone-500  text-nowrap  gap-1"
+              >
+                <span className=" text-[#1476c6] font-fira ">Coventry</span>
+                Scholar
+              </div>
+    }
+    {NAV_LINKS}
+            </>
           ) : (
             <div className="flex w-full  justify-start items-center gap-4 ">
               <div
@@ -135,7 +177,7 @@ const Header = () => {
           )}
 
           <div className={`${searchOpen ? " hidden lg:block  " : " "}`}>
-            <UserAvatar classes="" />
+            <UserAvatar classes="" link={true}  />
           </div>
         </div>
 

@@ -7,8 +7,7 @@ import {
   ReactNode,
   useEffect,
 } from "react";
-import { SetURLSearchParams, useSearchParams } from "react-router";
-import { useAppContext } from "./AppContext";
+import { SetURLSearchParams, useLocation, useSearchParams } from "react-router";
 
 interface SearchContextType {
   filters: any;
@@ -34,7 +33,7 @@ export const SearchContextProvider = ({
 }) => {
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchParams, setSearchParams] = useSearchParams();
-
+  const location = useLocation();
   const DEFAULT_FILTERS = {
     query: searchParams.get("query") || "",
     ylo: searchParams.get("ylo") || "",
@@ -59,18 +58,6 @@ export const SearchContextProvider = ({
     Object.fromEntries(searchParams.entries())
   );
 
-  // const handleSearchParamChange = (field: string, value: any) => {
-  //   console.log(`SP:${field}-${value}`)
-  //   setSearchParams((prev) => {
-  //     const newParams = new URLSearchParams(prev);
-  //     if (value) {
-  //       newParams.set(field, value);
-  //     } else {
-  //       newParams.delete(field);
-  //     }
-  //     return newParams;
-  //   });
-  // };
 
   const handleChangeFilter = (field: string, value: string) => {
     setSearchParams((prev) => {
@@ -95,6 +82,14 @@ export const SearchContextProvider = ({
       setSearchOpen(true);
     }
   }, [searchParams, queryState.refetch]);
+
+
+  useEffect(()=>{
+    if(location.pathname != "/") {
+      setInitialLoad(false);
+      setSearchOpen(false);
+    }
+  },[location.pathname])
 
   return (
     <SearchContext.Provider

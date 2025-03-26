@@ -7,6 +7,7 @@ import AppLayout from "@/layout/AppLayout.tsx";
 import Logs from "@/pages/Logs";
 import Profile from "@/pages/Profile";
 import PageNotFound from "./pages/PageNotFound";
+import Classification from "./pages/Classification";
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
@@ -16,6 +17,7 @@ createRoot(document.getElementById("root")!).render(
           <Route path="/" index element={<App />} />
           <Route path="/Logs" element={<Logs />} />
           <Route path="/profile" element={<Profile />} />
+          <Route path="/classification" element={<Classification />} />
           <Route path="*" element={<PageNotFound />} />
         </Route>
       </Routes>

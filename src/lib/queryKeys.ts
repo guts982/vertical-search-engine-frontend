@@ -5,6 +5,9 @@
     searchResults:"searchResults",
 
     authorPublications: "authorPublications",
+
+    textClassification: "textClassification",
+    modelResults: "modelResults",
     
     logs: "logs",
 

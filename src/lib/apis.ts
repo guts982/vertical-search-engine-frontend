@@ -1,6 +1,7 @@
+import { config } from '@/app-config';
 import axios from 'axios';
 
-const API_URL = "http://127.0.0.1:8000"; 
+const API_URL = config.BACKEND_API_URL; 
 
 const axiosBase = axios.create({
     baseURL: API_URL+'/api',
@@ -28,6 +29,27 @@ export const getAuthorPublications = async (authorIds: string[]) => {
     const end = performance.now(); 
     return { data: data.data, responseTime: formatResponseTime(end - start)};
 };
+
+
+
+
+
+export const modelResults = async () => {
+    const start = performance.now(); 
+    const {data} = await axiosBase.get('/model-results');
+    const end = performance.now(); 
+    return {data:data, responseTime: formatResponseTime(end - start)};
+};
+
+
+
+export const classifyText = async (body:{text: string}) => {
+    const start = performance.now(); 
+    const {data} = await axiosBase.post('/classify', body);
+    const end = performance.now(); 
+    return { data: data, responseTime: formatResponseTime(end - start)};
+};
+
 
 
 
