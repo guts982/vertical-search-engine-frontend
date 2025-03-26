@@ -380,8 +380,9 @@ const DocList = ({ data }: { data: any }) => {
                   className="font-semibold decoration-none  text-red-500 text-md hover:underline"
                   target="blank"
                 >
-                  {author.name}
+                  {author.name} 
                 </a>
+                <div className="text-gray-500 text-xs">{author?.post}</div>
                 <div className="flex flex-col gap-2">
                   {author.publications.map((doc: any) => (
                     <div key={doc._id}>
